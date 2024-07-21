@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd
+      http://www.liquibase.org/xml/ns/pro
+      http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd">
+
+    <changeSet author="am" id="supermarket-01.000.00-1">
+        <createTable tableName="user" remarks="Пользователь">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_user"/>
+            </column>
+            <column name="email" type="VARCHAR(250)" remarks="Email пользователя">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(60)" remarks="Пароль">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_user" tableName="user" unique="true">
+            <column name="email" />
+        </createIndex>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-2">
+        <createTable tableName="org" remarks="Организация">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_org"/>
+            </column>
+            <column name="name" type="VARCHAR(50)" remarks="Название организации/ИП/Самозанятого">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-3">
+        <createTable tableName="org_user" remarks="Пользователи организации">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_org_user"/>
+            </column>
+            <column name="org_id" type="BIGINT" remarks="Идентификатор организации">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT" remarks="Идентификатор пользователя">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_org_user" tableName="org_user" unique="false">
+            <column name="org_id" />
+        </createIndex>
+        <createIndex indexName="k02_org_user" tableName="org_user" unique="false">
+            <column name="user_id" />
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="org_id"
+                                 baseTableName="org_user" constraintName="fk_org_user_org"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="org" referencesUniqueColumn="false"/>
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="org_user" constraintName="fk_org_user_user"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="user" referencesUniqueColumn="false"/>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-4">
+        <createTable tableName="store" remarks="Магазин">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_store"/>
+            </column>
+            <column name="org_id" type="BIGINT" remarks="Идентификатор организации владельца">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(250)" remarks="Название магазина">
+                <constraints nullable="true"/>
+            </column>
+            <column name="telegram_username" type="VARCHAR(250)" remarks="Имя телеграмм бота">
+                <constraints nullable="true"/>
+            </column>
+            <column name="telegram_token" type="VARCHAR(250)" remarks="Токен телеграмм бота">
+                <constraints nullable="true"/>
+            </column>
+            <column name="telegram_is_active" type="BOOLEAN" defaultValueBoolean="false" remarks="Признак, что бот включен">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_store" tableName="store" unique="false">
+            <column name="org_id" />
+        </createIndex>
+        <createIndex indexName="k02_store" tableName="store" unique="false">
+            <column name="telegram_username" />
+            <column name="telegram_is_active" />
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="org_id"
+                                 baseTableName="store" constraintName="fk_store_org"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="org" referencesUniqueColumn="false"/>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-5">
+        <createTable tableName="catalog" remarks="Каталог товаров">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_catalog"/>
+            </column>
+            <column name="store_id" type="BIGINT" remarks="Идентификатор магазина">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(250)" remarks="Название каталога">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sysname" type="VARCHAR(32)" remarks="Системное имя каталога (используется как команда в telegram)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_order" type="BIGINT" remarks="Порядок отображения" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_url" type="VARCHAR(1000)" remarks="Путь к изображению каталога (полный, относительный)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_catalog" tableName="catalog" unique="true">
+            <column name="store_id" />
+            <column name="name" />
+        </createIndex>
+        <createIndex indexName="k02_catalog" tableName="catalog" unique="true">
+            <column name="store_id" />
+            <column name="sysname" />
+        </createIndex>
+        <createIndex indexName="k03_catalog" tableName="catalog" unique="true">
+            <column name="store_id" />
+            <column name="display_order" />
+            <column name="name" />
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="store_id"
+                                 baseTableName="catalog" constraintName="fk_catalog_store"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="store" referencesUniqueColumn="false"/>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-6">
+        <createTable tableName="size_type" remarks="Типы размеров продукта">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_size_type"/>
+            </column>
+            <column name="store_id" type="BIGINT" remarks="Идентификатор магазина">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(250)" remarks="Название размера">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_order" type="BIGINT" remarks="Порядок отображения" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_size_type" tableName="size_type" unique="true">
+            <column name="store_id" />
+            <column name="name" />
+        </createIndex>
+        <createIndex indexName="k02_size_type" tableName="size_type" unique="true">
+            <column name="store_id" />
+            <column name="display_order" />
+            <column name="name" />
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="store_id"
+                                 baseTableName="size_type" constraintName="fk_size_type_store"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="store" referencesUniqueColumn="false"/>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-7">
+        <createTable tableName="product" remarks="Продукты/товары в магазине">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_product"/>
+            </column>
+            <column name="store_id" type="BIGINT" remarks="Идентификатор магазина">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(250)" remarks="Название товара">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)" remarks="Описание товара">
+                <constraints nullable="true"/>
+            </column>
+            <column name="image_url" type="VARCHAR(1000)" remarks="Путь к изображению продукта (полный, относительный)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="display_order" type="BIGINT" remarks="Порядок отображения" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_product" tableName="product" unique="false">
+            <column name="store_id" />
+            <column name="name" />
+        </createIndex>
+        <createIndex indexName="k02_product" tableName="product" unique="false">
+            <column name="store_id" />
+            <column name="display_order" />
+            <column name="name" />
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="store_id"
+                                 baseTableName="product" constraintName="fk_product_store"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="store" referencesUniqueColumn="false"/>
+
+        <createTable tableName="product_detail" remarks="Размерности продукта">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_product_detail"/>
+            </column>
+            <column name="product_id" type="BIGINT" remarks="Идентификатор продукта">
+                <constraints nullable="false"/>
+            </column>
+            <column name="size_type_id" type="BIGINT" remarks="Идентификатор размерности продукта">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="NUMERIC(25,6)" remarks="Стоимость товара">
+                <constraints nullable="true"/>
+            </column>
+            <column name="quantity" type="NUMERIC(25,6)" remarks="Количество товара">
+                <constraints nullable="true"/>
+            </column>
+            <column name="is_default" type="NUMERIC(1)" remarks="Признак, что размерность по умолчанию (для отображения цены в списках продуктов). 0 - не является, 1 - является">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+        <createIndex indexName="k01_product_detail" tableName="product_detail" unique="false">
+            <column name="product_id" />
+        </createIndex>
+        <createIndex indexName="k02_product_detail" tableName="product_detail" unique="false">
+            <column name="size_type_id" />
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="product_id"
+                                 baseTableName="product_detail" constraintName="fk_product_detail_product"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="product" referencesUniqueColumn="false"/>
+        <addForeignKeyConstraint baseColumnNames="size_type_id"
+                                 baseTableName="product_detail" constraintName="fk_product_detail_size_type"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="size_type" referencesUniqueColumn="false"/>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-8">
+        <createTable tableName="catalog_product" remarks="Продукты входящие в каталог">
+<!--            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">-->
+<!--                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_catalog_product"/>-->
+<!--            </column>-->
+            <column name="catalog_id" type="BIGINT" remarks="Идентификатор каталога">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT" remarks="Идентификатор продукта">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey  columnNames="catalog_id, product_id" constraintName="pk_catalog_product"
+                        tableName="catalog_product" validate="true"/>
+<!--        <createIndex indexName="k01_catalog_product" tableName="catalog_product" unique="true">-->
+<!--            <column name="catalog_id" />-->
+<!--            <column name="product_id" />-->
+<!--        </createIndex>-->
+        <createIndex indexName="k01_catalog_product" tableName="catalog_product" unique="false">
+            <column name="product_id" />
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="catalog_id"
+                                 baseTableName="catalog_product" constraintName="fk_catalog_product_catalog"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="catalog" referencesUniqueColumn="false"/>
+        <addForeignKeyConstraint baseColumnNames="product_id"
+                                 baseTableName="catalog_product" constraintName="fk_catalog_product_product"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="product" referencesUniqueColumn="false"/>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-9">
+        <createTable tableName="customer" remarks="Покупатель">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_customer"/>
+            </column>
+            <column name="store_id" type="BIGINT" remarks="Идентификатор магазина">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_type" type="NUMERIC(10)" remarks="Тип внешней системы. 1 - Telegram" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_id" type="VARCHAR(250)" remarks="Идентификатор покупателя во внешней системе">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sysname" type="VARCHAR(250)" remarks="Логин клиента во внешней системе">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(250)" remarks="Имя клиента во внешней системе">
+                <constraints nullable="true"/>
+            </column>
+            <column name="address" type="VARCHAR(1000)" remarks="Адрес">
+                <constraints nullable="true"/>
+            </column>
+            <column name="email" type="VARCHAR(250)" remarks="Email">
+                <constraints nullable="true"/>
+            </column>
+            <column name="phone" type="VARCHAR(250)" remarks="Телефон">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_customer" tableName="customer" unique="true">
+            <column name="store_id"/>
+            <column name="external_type"/>
+            <column name="external_id"/>
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="store_id"
+                                 baseTableName="customer" constraintName="fk_customer_store"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="store" referencesUniqueColumn="false"/>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-10">
+        <createTable tableName="store_cart" remarks="Корзина покупателя">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_store_cart"/>
+            </column>
+            <column name="store_id" type="BIGINT" remarks="Идентификатор магазина">
+                <constraints nullable="false"/>
+            </column>
+            <column name="customer_id" type="BIGINT" remarks="Уникальный идентификатор покупателя">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_detail_id" type="BIGINT" remarks="Детальный идентификатор продукта">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity" type="NUMERIC(25,6)" remarks="Количество товара">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_order" type="BIGINT" remarks="Порядок отображения" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_store_cart" tableName="store_cart" unique="false">
+            <column name="store_id"/>
+        </createIndex>
+        <createIndex indexName="k02_store_cart" tableName="store_cart" unique="false">
+            <column name="customer_id" />
+        </createIndex>
+        <createIndex indexName="k03_store_cart" tableName="store_cart" unique="false">
+            <column name="product_detail_id" />
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="customer_id"
+                                 baseTableName="store_cart" constraintName="fk_store_cart_customer"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="customer" referencesUniqueColumn="false"/>
+        <addForeignKeyConstraint baseColumnNames="product_detail_id"
+                                 baseTableName="store_cart" constraintName="fk_store_cart_product_detail"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencedColumnNames="id"
+                                 referencedTableName="product_detail" referencesUniqueColumn="false"/>
+        <addForeignKeyConstraint baseColumnNames="store_id"
+                                 baseTableName="store_cart"
+                                 constraintName="fk_store_cart_store"
+                                 referencedColumnNames="id"
+                                 referencedTableName="store"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencesUniqueColumn="false"/>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-11">
+        <createTable tableName="order" remarks="Заказ">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_order"/>
+            </column>
+            <column name="customer_id" type="BIGINT" remarks="Уникальный идентификатор покупателя">
+                <constraints nullable="false" />
+            </column>
+            <column name="create_date" type="TIMESTAMP" remarks="Дата создания заказа">
+                <constraints nullable="false"/>
+            </column>
+            <column name="org_id" type="BIGINT" remarks="Идентификатор организации">
+                <constraints nullable="false"/>
+            </column>
+            <column name="store_id" type="BIGINT" remarks="Идентификатор магазина">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="NUMERIC(25,6)" remarks="Сумма покупки">
+                <constraints nullable="true"/>
+            </column>
+            <column name="currency" type="VARCHAR(10)" remarks="Валюта покупки. Обозначение валюты в платежной системе (например: трехбуквенное по стандарту ISO 4217)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_payment" type="NUMERIC(1)" remarks="Признак, что покупка оплачена. 0 - не оплачена, 1 - оплачена">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="VARCHAR(1000)" remarks="Адрес доставки">
+                <constraints nullable="true"/>
+            </column>
+            <column name="email" type="VARCHAR(250)" remarks="Email покупателя">
+                <constraints nullable="true"/>
+            </column>
+            <column name="phone" type="VARCHAR(250)" remarks="Телефон покупателя">
+                <constraints nullable="true"/>
+            </column>
+            <column name="comment" type="VARCHAR(500)" remarks="Комментарий покупателя">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_order" tableName="order" unique="false">
+            <column name="org_id"/>
+            <column name="create_date"/>
+            <column name="is_payment"/>
+        </createIndex>
+        <createIndex indexName="k02_order" tableName="order" unique="false">
+            <column name="org_id"/>
+            <column name="store_id"/>
+            <column name="create_date"/>
+            <column name="is_payment"/>
+        </createIndex>
+        <createIndex indexName="k03_order" tableName="order" unique="false">
+            <column name="customer_id"/>
+        </createIndex>
+        <createIndex indexName="k04_order" tableName="order" unique="false">
+            <column name="store_id"/>
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="customer_id"
+                                 baseTableName="order"
+                                 constraintName="fk_order_customer"
+                                 referencedColumnNames="id"
+                                 referencedTableName="customer"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencesUniqueColumn="false"/>
+        <addForeignKeyConstraint baseColumnNames="org_id"
+                                 baseTableName="order"
+                                 constraintName="fk_order_org"
+                                 referencedColumnNames="id"
+                                 referencedTableName="org"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencesUniqueColumn="false"/>
+        <addForeignKeyConstraint baseColumnNames="store_id"
+                                 baseTableName="order"
+                                 constraintName="fk_order_store"
+                                 referencedColumnNames="id"
+                                 referencedTableName="store"
+                                 deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+                                 onUpdate="NO ACTION" referencesUniqueColumn="false"/>
+    </changeSet>
+    <changeSet author="am" id="supermarket-01.000.00-12">
+        <createTable tableName="order_detail" remarks="Детали заказа">
+            <column name="id" type="BIGINT" autoIncrement="true" remarks="Уникальный идентификатор">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_order_detail"/>
+            </column>
+            <column name="order_id" type="BIGINT" remarks="Уникальный идентификатор заказа">
+                <constraints nullable="false" />
+            </column>
+            <column name="product_detail_id" type="BIGINT" remarks="Детальный идентификатор продукта на дату заказа">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(250)" remarks="Название товара на дату заказа">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="NUMERIC(25,6)" remarks="Стоимость товара на дату заказа">
+                <constraints nullable="true"/>
+            </column>
+            <column name="quantity" type="NUMERIC(25,6)" remarks="Количество товара">
+                <constraints nullable="true"/>
+            </column>
+            <column name="display_order" type="BIGINT" remarks="Порядок отображения" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="k01_order_detail" tableName="order_detail" unique="false">
+            <column name="order_id"/>
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="order_id"
+                                 baseTableName="order_detail"
+                                 constraintName="fk_order_detail_order"
+                                 referencedColumnNames="id"
+                                 referencedTableName="order"
+                                 deferrable="false" initiallyDeferred="false" onDelete="CASCADE"
+                                 onUpdate="NO ACTION" referencesUniqueColumn="false"/>
+    </changeSet>
+
+</databaseChangeLog>

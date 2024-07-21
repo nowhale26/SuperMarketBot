@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd
+      http://www.liquibase.org/xml/ns/pro
+      http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd">
+
+    <changeSet author="am" id="supermarket-01.000.00.data-1">
+        <loadData file="db/changelog/01.000.00/dml/org.csv" encoding="UTF-8" tableName="org"/>
+        <loadData file="db/changelog/01.000.00/dml/store.csv" encoding="UTF-8" tableName="store"/>
+        <loadData file="db/changelog/01.000.00/dml/size_type.csv" encoding="UTF-8" tableName="size_type"/>
+        <loadData file="db/changelog/01.000.00/dml/catalog.csv" encoding="UTF-8" tableName="catalog"/>
+        <loadData file="db/changelog/01.000.00/dml/product.csv" encoding="UTF-8" tableName="product"/>
+        <loadData file="db/changelog/01.000.00/dml/product_detail.csv" encoding="UTF-8" tableName="product_detail"/>
+        <loadData file="db/changelog/01.000.00/dml/catalog_product.csv" encoding="UTF-8" tableName="catalog_product"/>
+    </changeSet>
+
+</databaseChangeLog>
